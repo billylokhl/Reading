@@ -834,9 +834,16 @@ html_template = """<!DOCTYPE html>
 </html>
 """
 
+# Create dist directory
+dist_dir = os.path.join(vault_path, "dist")
+os.makedirs(dist_dir, exist_ok=True)
+
 html_content = html_template.replace("__LOGS_DATA__", json.dumps(logs_data))
 
-with open(os.path.join(vault_path, "index.html"), "w", encoding="utf-8") as f:
+with open(os.path.join(dist_dir, "index.html"), "w", encoding="utf-8") as f:
     f.write(html_content)
 
-print(f"Generated static index.html with {len(logs_data)} reading logs!")
+with open(os.path.join(dist_dir, ".nojekyll"), "w", encoding="utf-8") as f:
+    f.write("\n")
+
+print(f"Generated static index.html and .nojekyll with {len(logs_data)} reading logs inside dist/!")
