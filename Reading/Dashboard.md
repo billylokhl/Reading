@@ -79,7 +79,7 @@ function parseLocalISO(dateStr) {
     if (!dateStr) return new Date();
     const parts = dateStr.split("-");
     if (parts.length < 3) return new Date();
-    return new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
+    return new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
 }
 
 function getStartOfWeek(dateStr) {
@@ -222,15 +222,15 @@ function renderChart(numDays, groupBy) {
         
         if (groupBy === "day" || groupBy === "week") {
             const dateParts = dateStr.split("-");
-            dayStr = parseInt(dateParts[2]).toString();
+            dayStr = parseInt(dateParts[2], 10).toString();
             monthStr = dateParts[1];
-            monthName = monthNames[parseInt(monthStr) - 1] || monthStr;
+            monthName = monthNames[parseInt(monthStr, 10) - 1] || monthStr;
             yearStr = dateParts[0];
         } else if (groupBy === "month") {
             const dateParts = dateStr.split("-"); // YYYY-MM
             dayStr = "";
             monthStr = dateParts[1];
-            monthName = monthNames[parseInt(monthStr) - 1] || monthStr;
+            monthName = monthNames[parseInt(monthStr, 10) - 1] || monthStr;
             yearStr = dateParts[0];
         } else if (groupBy === "year") {
             dayStr = "";
@@ -295,7 +295,7 @@ renderChart(30, "day");
 
 // Handle changes
 input.addEventListener("input", (e) => {
-    const val = parseInt(e.target.value);
+    const val = parseInt(e.target.value, 10);
     if (val > 0) {
         renderChart(val, select.value);
     }
