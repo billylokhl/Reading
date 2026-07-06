@@ -1,0 +1,5 @@
+.DS_Store
+**/workspace.json
+**/workspace-mobile.json
+*.log
+index.html
