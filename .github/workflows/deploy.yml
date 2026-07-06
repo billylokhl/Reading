@@ -34,3 +34,4 @@ jobs:
             .git
           includes: |
             index.html
+            .nojekyll
