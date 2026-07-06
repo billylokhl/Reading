@@ -66,11 +66,27 @@ tooltip.style.whiteSpace = "pre-line";
 
 const chartDiv = container.createEl("div");
 
+// Safe formatting of local dates (YYYY-MM-DD)
+function formatLocalISO(date) {
+    const yyyy = date.getFullYear();
+    const mm = String(date.getMonth() + 1).padStart(2, '0');
+    const dd = String(date.getDate()).padStart(2, '0');
+    return `${yyyy}-${mm}-${dd}`;
+}
+
+// Safe parsing of YYYY-MM-DD strings
+function parseLocalISO(dateStr) {
+    if (!dateStr) return new Date();
+    const parts = dateStr.split("-");
+    if (parts.length < 3) return new Date();
+    return new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
+}
+
 function getStartOfWeek(dateStr) {
-    const d = new Date(dateStr + "T00:00:00");
+    const d = parseLocalISO(dateStr);
     const day = d.getDay(); // 0 is Sunday
     d.setDate(d.getDate() - day);
-    return d.toISOString().split('T')[0];
+    return formatLocalISO(d);
 }
 
 // Generate nice tick marks for Y axis
@@ -114,7 +130,7 @@ function renderChart(numDays, groupBy) {
     for (let i = numDays - 1; i >= 0; i--) {
         const d = new Date();
         d.setDate(today.getDate() - i);
-        const dateStr = d.toISOString().split('T')[0];
+        const dateStr = formatLocalISO(d);
         groupsSet.add(getGroupKey(dateStr));
     }
     
@@ -233,9 +249,9 @@ function renderChart(numDays, groupBy) {
         // Format Tooltip Text
         let labelTooltip = dateStr;
         if (groupBy === "week") {
-            const weekEndObj = new Date(dateStr + "T00:00:00");
+            const weekEndObj = parseLocalISO(dateStr);
             weekEndObj.setDate(weekEndObj.getDate() + 6);
-            const weekEndStr = weekEndObj.toISOString().split('T')[0];
+            const weekEndStr = formatLocalISO(weekEndObj);
             labelTooltip = `Week of ${dateStr} to ${weekEndStr}`;
         } else if (groupBy === "month") {
             labelTooltip = `${monthName} ${yearStr}`;
@@ -297,7 +313,7 @@ select.addEventListener("change", (e) => {
     renderChart(defaultDays, val);
 });
 
-// Tooltip hover interactions
+// Tooltip hover interactions (Desktop)
 chartDiv.addEventListener("mouseover", (e) => {
     if (e.target.classList.contains("bar-item")) {
         const tooltipText = e.target.getAttribute("data-tooltip");
@@ -320,6 +336,36 @@ chartDiv.addEventListener("mousemove", (e) => {
     tooltip.style.left = `${e.clientX + 15}px`;
     tooltip.style.top = `${e.clientY + 15}px`;
 });
+
+// Touch support (Obsidian Mobile / iPhone)
+chartDiv.addEventListener("touchstart", (e) => {
+    if (e.target.classList.contains("bar-item")) {
+        const tooltipText = e.target.getAttribute("data-tooltip");
+        if (tooltipText) {
+            tooltip.innerHTML = tooltipText.replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>");
+            tooltip.style.display = "block";
+            
+            // Position tooltip above the touched bar
+            const rect = e.target.getBoundingClientRect();
+            tooltip.style.left = `${rect.left + window.scrollX}px`;
+            tooltip.style.top = `${rect.top + window.scrollY - tooltip.offsetHeight - 10}px`;
+            e.target.style.fillOpacity = "0.75";
+        }
+    }
+}, { passive: true });
+
+chartDiv.addEventListener("touchend", (e) => {
+    if (e.target.classList.contains("bar-item")) {
+        e.target.style.fillOpacity = "1.0";
+    }
+}, { passive: true });
+
+// Hide tooltip if user taps outside the chart area
+document.addEventListener("touchstart", (e) => {
+    if (!chartDiv.contains(e.target) && !tooltip.contains(e.target)) {
+        tooltip.style.display = "none";
+    }
+}, { passive: true });
 ```
 
 ## 🗓️ Reading Heatmap (This Month)
