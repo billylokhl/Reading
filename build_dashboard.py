@@ -21,6 +21,7 @@ if os.path.exists(logs_dir):
             fm_match = re.match(r"^---\s*\n(.*?)\n---", content, re.DOTALL)
             if fm_match:
                 fm_text = fm_match.group(1)
+                note_body = content[fm_match.end():].strip()
                 
                 # Parse frontmatter properties
                 log_entry = {}
@@ -47,7 +48,8 @@ if os.path.exists(logs_dir):
                         "material": material,
                         "chapter": chapter,
                         "page_range": page_range,
-                        "pages_read": pages_read
+                        "pages_read": pages_read,
+                        "note_body": note_body
                     })
 
 # Sort logs by date descending
@@ -63,6 +65,7 @@ html_template = """<!DOCTYPE html>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <style>
         :root {
             --bg-primary: #0b0f19;
@@ -120,6 +123,35 @@ html_template = """<!DOCTYPE html>
             display: flex;
             align-items: center;
             gap: 0.75rem;
+        }
+
+        /* Filter Banner */
+        .filter-banner {
+            display: none;
+            background: rgba(99, 102, 241, 0.15);
+            border: 1px solid var(--accent);
+            border-radius: 12px;
+            padding: 0.75rem 1.25rem;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 0.9rem;
+            animation: fadeIn 0.3s;
+        }
+
+        .clear-filter-btn {
+            background: var(--accent);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            padding: 0.25rem 0.75rem;
+            font-size: 0.8rem;
+            cursor: pointer;
+            font-weight: 600;
+            transition: opacity 0.2s;
+        }
+
+        .clear-filter-btn:hover {
+            opacity: 0.9;
         }
 
         .stats-grid {
@@ -186,8 +218,16 @@ html_template = """<!DOCTYPE html>
         .controls-row {
             display: flex;
             align-items: center;
-            gap: 2.5rem;
+            justify-content: space-between;
             margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .controls-left {
+            display: flex;
+            align-items: center;
+            gap: 2.5rem;
             flex-wrap: wrap;
         }
 
@@ -259,7 +299,7 @@ html_template = """<!DOCTYPE html>
         }
 
         .bar-item {
-            transition: fill-opacity 0.15s, transform 0.2s;
+            transition: fill-opacity 0.15s;
             cursor: pointer;
         }
 
@@ -322,6 +362,7 @@ html_template = """<!DOCTYPE html>
             padding: 1rem;
             border-bottom: 1px solid var(--border);
             color: var(--text-main);
+            vertical-align: middle;
         }
 
         tr:last-child td {
@@ -330,6 +371,40 @@ html_template = """<!DOCTYPE html>
 
         tr:hover td {
             background: rgba(255, 255, 255, 0.02);
+        }
+
+        .book-link {
+            color: var(--accent);
+            text-decoration: none;
+            font-weight: 500;
+            cursor: pointer;
+        }
+
+        .book-link:hover {
+            text-decoration: underline;
+        }
+
+        .note-row {
+            cursor: pointer;
+        }
+
+        .note-btn {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            color: var(--text-main);
+            padding: 0.25rem 0.5rem;
+            font-size: 0.75rem;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+            transition: background 0.2s;
+        }
+
+        .note-btn:hover {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: var(--accent);
         }
 
         .pagination {
@@ -360,6 +435,152 @@ html_template = """<!DOCTYPE html>
             cursor: not-allowed;
         }
 
+        /* Note Reader Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(7, 10, 19, 0.85);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            z-index: 10000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 1.5rem;
+            animation: fadeIn 0.2s ease-out;
+        }
+
+        .modal-content {
+            background: #111827;
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            width: 100%;
+            max-width: 800px;
+            max-height: 85vh;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6);
+            overflow: hidden;
+            animation: scaleIn 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .modal-header {
+            padding: 1.5rem 2rem;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+
+        .modal-header-info {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+
+        .modal-book-title {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: #ffffff;
+        }
+
+        .modal-metadata {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .close-btn {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            border-radius: 50%;
+            width: 32px;
+            height: 32px;
+            color: var(--text-main);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 0.9rem;
+            transition: background 0.2s;
+        }
+
+        .close-btn:hover {
+            background: rgba(239, 68, 68, 0.2);
+            color: #ef4444;
+            border-color: rgba(239, 68, 68, 0.4);
+        }
+
+        .modal-body {
+            padding: 2rem;
+            overflow-y: auto;
+            color: #d1d5db;
+            font-size: 0.975rem;
+            line-height: 1.6;
+        }
+
+        /* Rendered Markdown Styling */
+        .markdown-body h1, .markdown-body h2, .markdown-body h3 {
+            font-family: 'Outfit', sans-serif;
+            color: #ffffff;
+            margin-top: 1.5rem;
+            margin-bottom: 0.75rem;
+            font-weight: 600;
+        }
+        .markdown-body h1 { font-size: 1.5rem; }
+        .markdown-body h2 { font-size: 1.25rem; }
+        .markdown-body h3 { font-size: 1.1rem; }
+        .markdown-body p { margin-bottom: 1rem; }
+        .markdown-body ul, .markdown-body ol {
+            margin-bottom: 1rem;
+            padding-left: 1.5rem;
+        }
+        .markdown-body li { margin-bottom: 0.25rem; }
+        .markdown-body blockquote {
+            border-left: 4px solid var(--accent);
+            background: rgba(99, 102, 241, 0.05);
+            padding: 0.75rem 1.25rem;
+            margin-bottom: 1rem;
+            border-radius: 0 8px 8px 0;
+            font-style: italic;
+        }
+        .markdown-body pre {
+            background: var(--bg-tertiary);
+            padding: 1rem;
+            border-radius: 8px;
+            overflow-x: auto;
+            border: 1px solid var(--border);
+            margin-bottom: 1rem;
+        }
+        .markdown-body code {
+            font-family: monospace;
+            background: var(--bg-tertiary);
+            padding: 0.125rem 0.25rem;
+            border-radius: 4px;
+            font-size: 0.9em;
+        }
+        .markdown-body pre code {
+            background: transparent;
+            padding: 0;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes scaleIn {
+            from { transform: scale(0.95); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
         @media (max-width: 640px) {
             body {
                 padding: 1rem;
@@ -370,7 +591,18 @@ html_template = """<!DOCTYPE html>
                 gap: 0.5rem;
             }
             .controls-row {
-                gap: 1.5rem;
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 1rem;
+            }
+            .controls-left {
+                gap: 1rem;
+            }
+            .modal-content {
+                max-height: 90vh;
+            }
+            .modal-body {
+                padding: 1.25rem;
             }
         }
     </style>
@@ -380,6 +612,12 @@ html_template = """<!DOCTYPE html>
         <header>
             <h1>📚 Reading Dashboard</h1>
         </header>
+
+        <!-- Book Filter Banner -->
+        <div class="filter-banner" id="filter-banner">
+            <span>Filtering by book: <strong id="filter-book-name" style="color: #ffffff;">Book Title</strong></span>
+            <button class="clear-filter-btn" id="clear-filter-btn">Clear Filter</button>
+        </div>
 
         <!-- Stats Overview -->
         <div class="stats-grid">
@@ -404,19 +642,21 @@ html_template = """<!DOCTYPE html>
         <!-- Chart Card -->
         <div class="card">
             <div class="controls-row">
-                <div class="control-group">
-                    <label for="lookback">Look back:</label>
-                    <input type="number" id="lookback" value="30" min="1">
-                    <span style="font-size: 0.875rem; color: var(--text-muted);">days</span>
-                </div>
-                <div class="control-group">
-                    <label for="groupby">Group by:</label>
-                    <select id="groupby">
-                        <option value="day">Day</option>
-                        <option value="week">Week</option>
-                        <option value="month">Month</option>
-                        <option value="year">Year</option>
-                    </select>
+                <div class="controls-left">
+                    <div class="control-group">
+                        <label for="lookback">Look back:</label>
+                        <input type="number" id="lookback" value="30" min="1">
+                        <span style="font-size: 0.875rem; color: var(--text-muted);">days</span>
+                    </div>
+                    <div class="control-group">
+                        <label for="groupby">Group by:</label>
+                        <select id="groupby">
+                            <option value="day">Day</option>
+                            <option value="week">Week</option>
+                            <option value="month">Month</option>
+                            <option value="year">Year</option>
+                        </select>
+                    </div>
                 </div>
             </div>
 
@@ -440,6 +680,7 @@ html_template = """<!DOCTYPE html>
                             <th>Chapter/Section</th>
                             <th>Page Range</th>
                             <th>Pages Read</th>
+                            <th style="width: 100px; text-align: center;">Notes</th>
                         </tr>
                     </thead>
                     <tbody id="table-body">
@@ -457,10 +698,33 @@ html_template = """<!DOCTYPE html>
         </div>
     </div>
 
+    <!-- Note Reader Modal -->
+    <div class="modal-overlay" id="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-header-info">
+                    <h3 class="modal-book-title" id="modal-book-title">Book Title</h3>
+                    <div class="modal-metadata">
+                        <span id="modal-date">Date</span>
+                        <span id="modal-chapter">Chapter</span>
+                        <span id="modal-pages">Pages Read</span>
+                    </div>
+                </div>
+                <button class="close-btn" id="close-modal-btn">&times;</button>
+            </div>
+            <div class="modal-body markdown-body" id="modal-body">
+                <!-- Rendered Markdown Content -->
+            </div>
+        </div>
+    </div>
+
     <div class="tooltip" id="tooltip"></div>
 
     <script>
         const rawLogs = __LOGS_DATA__;
+
+        // Current filter state
+        let currentBookFilter = null;
 
         const lookbackInput = document.getElementById("lookback");
         const groupbySelect = document.getElementById("groupby");
@@ -477,6 +741,18 @@ html_template = """<!DOCTYPE html>
         const pageIndicator = document.getElementById("page-indicator");
         const prevBtn = document.getElementById("prev-btn");
         const nextBtn = document.getElementById("next-btn");
+
+        const filterBanner = document.getElementById("filter-banner");
+        const filterBookName = document.getElementById("filter-book-name");
+        const clearFilterBtn = document.getElementById("clear-filter-btn");
+
+        const modalOverlay = document.getElementById("modal-overlay");
+        const modalBookTitle = document.getElementById("modal-book-title");
+        const modalDate = document.getElementById("modal-date");
+        const modalChapter = document.getElementById("modal-chapter");
+        const modalPages = document.getElementById("modal-pages");
+        const modalBody = document.getElementById("modal-body");
+        const closeModalBtn = document.getElementById("close-modal-btn");
 
         // Helper functions for date operations
         function formatLocalISO(date) {
@@ -500,6 +776,7 @@ html_template = """<!DOCTYPE html>
             return formatLocalISO(d);
         }
 
+        // Get nice tick marks for Y axis
         function getNiceMaxAndInterval(rawMax) {
             const minMax = Math.max(10, rawMax);
             const magnitude = Math.pow(10, Math.floor(Math.log10(minMax)));
@@ -515,21 +792,33 @@ html_template = """<!DOCTYPE html>
             return { yMax, step };
         }
 
+        // Get logs filtered by active book selection
+        function getFilteredLogsByBook() {
+            if (!currentBookFilter) return rawLogs;
+            return rawLogs.filter(l => l.material === currentBookFilter);
+        }
+
         // Calculate Overview Stats
         function calculateStats() {
-            if (rawLogs.length === 0) return;
+            const logsToUse = getFilteredLogsByBook();
+            if (logsToUse.length === 0) {
+                statTotal.textContent = "0";
+                statBooks.textContent = "0";
+                statAvg.textContent = "0 p/d";
+                statStreak.textContent = "0 days";
+                return;
+            }
 
             // Total Pages
-            const total = rawLogs.reduce((acc, l) => acc + l.pages_read, 0);
+            const total = logsToUse.reduce((acc, l) => acc + l.pages_read, 0);
             statTotal.textContent = total.toLocaleString();
 
             // Book count
-            const uniqueBooks = new Set(rawLogs.map(l => l.material));
+            const uniqueBooks = new Set(logsToUse.map(l => l.material));
             statBooks.textContent = uniqueBooks.size;
 
             // Daily Average
-            // Find total date span
-            const dates = rawLogs.map(l => parseLocalISO(l.date).getTime());
+            const dates = logsToUse.map(l => parseLocalISO(l.date).getTime());
             const minDate = new Date(Math.min(...dates));
             const maxDate = new Date(Math.max(...dates));
             const diffDays = Math.ceil((maxDate - minDate) / (1000 * 60 * 60 * 24)) + 1;
@@ -537,10 +826,9 @@ html_template = """<!DOCTYPE html>
             statAvg.textContent = `${avg} p/d`;
 
             // Current Streak
-            const activeDates = new Set(rawLogs.map(l => l.date));
+            const activeDates = new Set(logsToUse.map(l => l.date));
             let streak = 0;
             let checkDate = new Date();
-            // If they haven't read today, start check from yesterday
             if (!activeDates.has(formatLocalISO(checkDate))) {
                 checkDate.setDate(checkDate.getDate() - 1);
             }
@@ -556,6 +844,7 @@ html_template = """<!DOCTYPE html>
         function renderChart(numDays, groupBy) {
             chartDiv.innerHTML = "";
             const today = new Date();
+            const logsToUse = getFilteredLogsByBook();
             
             function getGroupKey(dateStr) {
                 if (groupBy === "day") return dateStr;
@@ -581,7 +870,7 @@ html_template = """<!DOCTYPE html>
             });
 
             // Aggregate
-            rawLogs.forEach(log => {
+            logsToUse.forEach(log => {
                 const groupKey = getGroupKey(log.date);
                 if (groupKey in dataMap) {
                     dataMap[groupKey].pages += log.pages_read;
@@ -701,6 +990,20 @@ html_template = """<!DOCTYPE html>
         const rowsPerPage = 10;
         let filteredLogs = [...rawLogs];
 
+        function filterAndRenderTable() {
+            const query = searchBox.value.toLowerCase().trim();
+            const logsToUse = getFilteredLogsByBook();
+
+            filteredLogs = logsToUse.filter(l => 
+                l.material.toLowerCase().includes(query) || 
+                (l.chapter && l.chapter.toLowerCase().includes(query)) ||
+                l.date.includes(query)
+            );
+            
+            currentPage = 1;
+            renderTable();
+        }
+
         function renderTable() {
             tableBody.innerHTML = "";
             const start = (currentPage - 1) * rowsPerPage;
@@ -709,12 +1012,21 @@ html_template = """<!DOCTYPE html>
 
             pageData.forEach(row => {
                 const tr = document.createElement("tr");
+                tr.className = "note-row";
+                
+                // Show view notes button only if there is a note body
+                const hasNotes = row.note_body && row.note_body.trim().length > 0;
+                const notesBtnCell = hasNotes 
+                    ? `<td style="text-align: center;"><button class="note-btn" onclick="openNoteReader('${row.date}', '${row.material.replace(/'/g, "\\'")}', '${(row.chapter || "").replace(/'/g, "\\'")}', ${row.pages_read}, '${row.page_range}')">📖 View</button></td>` 
+                    : `<td style="text-align: center; color: var(--text-muted); font-size: 0.8rem;">-</td>`;
+                
                 tr.innerHTML = `
                     <td>${row.date}</td>
-                    <td style="font-weight: 500; color: #ffffff;">${row.material}</td>
+                    <td><a class="book-link" onclick="setBookFilter('${row.material.replace(/'/g, "\\'")}')">${row.material}</a></td>
                     <td style="color: var(--text-muted);">${row.chapter || '-'}</td>
                     <td>${row.page_range || '-'}</td>
                     <td style="font-weight: 600; color: var(--accent);">${row.pages_read}</td>
+                    ${notesBtnCell}
                 `;
                 tableBody.appendChild(tr);
             });
@@ -726,31 +1038,51 @@ html_template = """<!DOCTYPE html>
             nextBtn.disabled = currentPage === totalPages;
         }
 
-        searchBox.addEventListener("input", (e) => {
-            const query = e.target.value.toLowerCase().trim();
-            filteredLogs = rawLogs.filter(l => 
-                l.material.toLowerCase().includes(query) || 
-                (l.chapter && l.chapter.toLowerCase().includes(query)) ||
-                l.date.includes(query)
-            );
-            currentPage = 1;
-            renderTable();
-        });
+        // Set book filter
+        window.setBookFilter = function(bookName) {
+            currentBookFilter = bookName;
+            filterBookName.textContent = bookName;
+            filterBanner.style.display = "flex";
+            
+            // Re-render everything
+            calculateStats();
+            renderChart(parseInt(lookbackInput.value, 10), groupbySelect.value);
+            filterAndRenderTable();
+        }
 
-        prevBtn.addEventListener("click", () => {
-            if (currentPage > 1) {
-                currentPage--;
-                renderTable();
-            }
-        });
+        // Clear book filter
+        function clearBookFilter() {
+            currentBookFilter = null;
+            filterBanner.style.display = "none";
+            
+            // Re-render everything
+            calculateStats();
+            renderChart(parseInt(lookbackInput.value, 10), groupbySelect.value);
+            filterAndRenderTable();
+        }
 
-        nextBtn.addEventListener("click", () => {
-            const totalPages = Math.ceil(filteredLogs.length / rowsPerPage) || 1;
-            if (currentPage < totalPages) {
-                currentPage++;
-                renderTable();
+        // Note Reader modal controls
+        window.openNoteReader = function(date, book, chapter, pages, range) {
+            // Find note in logs
+            const matchedLog = rawLogs.find(l => l.date === date && l.material === book && l.pages_read === pages);
+            if (matchedLog && matchedLog.note_body) {
+                modalBookTitle.textContent = book;
+                modalDate.textContent = `📅 ${date}`;
+                modalChapter.textContent = chapter ? `📖 ${chapter}` : "";
+                modalPages.textContent = `📄 Read ${pages} pages (${range || '-'})`;
+                
+                // Parse markdown into HTML
+                modalBody.innerHTML = marked.parse(matchedLog.note_body);
+                
+                modalOverlay.style.display = "flex";
+                document.body.style.overflow = "hidden"; // Disable background scrolling
             }
-        });
+        }
+
+        function closeModal() {
+            modalOverlay.style.display = "none";
+            document.body.style.overflow = ""; // Re-enable scrolling
+        }
 
         // Event Listeners for controls
         lookbackInput.addEventListener("input", (e) => {
@@ -770,6 +1102,39 @@ html_template = """<!DOCTYPE html>
             
             lookbackInput.value = defaultDays;
             renderChart(defaultDays, val);
+        });
+
+        searchBox.addEventListener("input", filterAndRenderTable);
+        clearFilterBtn.addEventListener("click", clearBookFilter);
+        closeModalBtn.addEventListener("click", closeModal);
+        
+        // Close modal on overlay tap
+        modalOverlay.addEventListener("click", (e) => {
+            if (e.target === modalOverlay) {
+                closeModal();
+            }
+        });
+
+        // Close modal on ESC key
+        document.addEventListener("keydown", (e) => {
+            if (e.key === "Escape") {
+                closeModal();
+            }
+        });
+
+        prevBtn.addEventListener("click", () => {
+            if (currentPage > 1) {
+                currentPage--;
+                renderTable();
+            }
+        });
+
+        nextBtn.addEventListener("click", () => {
+            const totalPages = Math.ceil(filteredLogs.length / rowsPerPage) || 1;
+            if (currentPage < totalPages) {
+                currentPage++;
+                renderTable();
+            }
         });
 
         // Hover Tooltip Interactions
@@ -828,17 +1193,17 @@ html_template = """<!DOCTYPE html>
         // Initial setup
         calculateStats();
         renderChart(30, "day");
-        renderTable();
+        filterAndRenderTable();
     </script>
 </body>
 </html>
 """
 
+html_content = html_template.replace("__LOGS_DATA__", json.dumps(logs_data))
+
 # Create dist directory
 dist_dir = os.path.join(vault_path, "dist")
 os.makedirs(dist_dir, exist_ok=True)
-
-html_content = html_template.replace("__LOGS_DATA__", json.dumps(logs_data))
 
 with open(os.path.join(dist_dir, "index.html"), "w", encoding="utf-8") as f:
     f.write(html_content)
