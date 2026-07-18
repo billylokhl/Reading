@@ -2,7 +2,7 @@
 type: reading-log
 date: 2026-07-04
 material: "[[The Gifts of Imperfection]]"
-chapter: Exploring the Power of Love, Belonging, and Being Enougyh
+chapter: Exploring the Power of Love, Belonging, and Being Enough
 page_range: 32-42
 pages_read: 25
 ---
@@ -20,11 +20,11 @@ Love is not something we give or get; it is something that we nurture and grow, 
 
 Shame, blame, disrespect, betrayal, and the withholding of affection damage the roots from which love grows. Love can only survive these injuries if they are acknowledged, healed, and rare.
 
-Belong is the innate human desire to be part of something larger than us.
+Belonging is the innate human desire to be part of something larger than us.
 
 We often try to acquire it by seeking approval and fitting in. These are actually barriers.
 
-True belonging only happens when we present our authentic, imperfect selves to the world, our sense of belong can never be greater than our level of self-acceptance.
+True belonging only happens when we present our authentic, imperfect selves to the world, our sense of belonging can never be greater than our level of self-acceptance.
 
 Can we love others more than we love ourselves?
 
