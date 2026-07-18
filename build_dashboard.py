@@ -1014,10 +1014,12 @@ html_template = """<!DOCTYPE html>
                 const tr = document.createElement("tr");
                 tr.className = "note-row";
                 
+                const rawIndex = rawLogs.indexOf(row);
+                
                 // Show view notes button only if there is a note body
                 const hasNotes = row.note_body && row.note_body.trim().length > 0;
                 const notesBtnCell = hasNotes 
-                    ? `<td style="text-align: center;"><button class="note-btn" onclick="openNoteReader('${row.date}', '${row.material.replace(/'/g, "\\'")}', '${(row.chapter || "").replace(/'/g, "\\'")}', ${row.pages_read}, '${row.page_range}')">📖 View</button></td>` 
+                    ? `<td style="text-align: center;"><button class="note-btn" onclick="openNoteReader(${rawIndex})">📖 View</button></td>` 
                     : `<td style="text-align: center; color: var(--text-muted); font-size: 0.8rem;">-</td>`;
                 
                 tr.innerHTML = `
@@ -1062,14 +1064,13 @@ html_template = """<!DOCTYPE html>
         }
 
         // Note Reader modal controls
-        window.openNoteReader = function(date, book, chapter, pages, range) {
-            // Find note in logs
-            const matchedLog = rawLogs.find(l => l.date === date && l.material === book && l.pages_read === pages);
+        window.openNoteReader = function(index) {
+            const matchedLog = rawLogs[index];
             if (matchedLog && matchedLog.note_body) {
-                modalBookTitle.textContent = book;
-                modalDate.textContent = `📅 ${date}`;
-                modalChapter.textContent = chapter ? `📖 ${chapter}` : "";
-                modalPages.textContent = `📄 Read ${pages} pages (${range || '-'})`;
+                modalBookTitle.textContent = matchedLog.material;
+                modalDate.textContent = `📅 ${matchedLog.date}`;
+                modalChapter.textContent = matchedLog.chapter ? `📖 ${matchedLog.chapter}` : "";
+                modalPages.textContent = `📄 Read ${matchedLog.pages_read} pages (${matchedLog.page_range || '-'})`;
                 
                 // Parse markdown into HTML
                 modalBody.innerHTML = marked.parse(matchedLog.note_body);
