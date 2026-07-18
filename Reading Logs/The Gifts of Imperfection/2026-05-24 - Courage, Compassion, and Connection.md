@@ -3,6 +3,8 @@ type: reading-log
 date: 2026-05-24
 material: "[[The Gifts of Imperfection]]"
 chapter: "Introduction: Wholehearted Living / Guidepost 1: Cultivating Authenticity"
+page_range: "1-25"
+pages_read: 25
 ---
 
 # The Three Pillars
