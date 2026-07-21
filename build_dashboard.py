@@ -4,8 +4,61 @@ import json
 
 vault_path = os.path.dirname(os.path.abspath(__file__))
 logs_dir = os.path.join(vault_path, "Reading Logs")
+materials_dir = os.path.join(vault_path, "Reading Materials")
 
-# 1. Scan and parse all reading logs
+# 1. Scan and parse all reading materials (books metadata & TOC)
+materials_data = {}
+
+if os.path.exists(materials_dir):
+    for root, dirs, files in os.walk(materials_dir):
+        for f in files:
+            if not f.endswith(".md"):
+                continue
+            file_path = os.path.join(root, f)
+            with open(file_path, "r", encoding="utf-8") as file:
+                content = file.read()
+            
+            fm_match = re.match(r"^---\s*\n(.*?)\n---", content, re.DOTALL)
+            if fm_match:
+                fm_text = fm_match.group(1)
+                body = content[fm_match.end():].strip()
+                
+                mat_entry = {}
+                for line in fm_text.splitlines():
+                    if ":" in line:
+                        parts = line.split(":", 1)
+                        key = parts[0].strip()
+                        val = parts[1].strip().strip('"').strip("'")
+                        mat_entry[key] = val
+                
+                title = mat_entry.get("title", f.replace(".md", ""))
+                
+                # Extract Table of Contents section from body
+                toc_match = re.search(r"##\s*Table of Contents\s*\n(.*?)(?=\n##|\Z)", body, re.DOTALL)
+                toc = toc_match.group(1).strip() if toc_match else ""
+                
+                try:
+                    total_pages = int(mat_entry.get("total_pages", 0))
+                except ValueError:
+                    total_pages = 0
+                
+                mat_obj = {
+                    "title": title,
+                    "author": mat_entry.get("author", "Unknown Author"),
+                    "total_pages": total_pages,
+                    "publication_year": mat_entry.get("publication_year", ""),
+                    "genre": mat_entry.get("genre", "General"),
+                    "status": mat_entry.get("status", "reading"),
+                    "url": mat_entry.get("URL", ""),
+                    "toc": toc
+                }
+                
+                materials_data[title] = mat_obj
+                filename_base = f.replace(".md", "")
+                if filename_base not in materials_data:
+                    materials_data[filename_base] = mat_obj
+
+# 2. Scan and parse all reading logs
 logs_data = []
 
 if os.path.exists(logs_dir):
@@ -55,7 +108,7 @@ if os.path.exists(logs_dir):
 # Sort logs by date descending
 logs_data.sort(key=lambda x: x["date"], reverse=True)
 
-# 2. Generate HTML Content
+# 3. Generate HTML Content
 html_template = """<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -376,12 +429,14 @@ html_template = """<!DOCTYPE html>
         .book-link {
             color: var(--accent);
             text-decoration: none;
-            font-weight: 500;
+            font-weight: 600;
             cursor: pointer;
+            transition: opacity 0.2s;
         }
 
         .book-link:hover {
             text-decoration: underline;
+            opacity: 0.85;
         }
 
         .note-row {
@@ -405,6 +460,16 @@ html_template = """<!DOCTYPE html>
         .note-btn:hover {
             background: rgba(255, 255, 255, 0.08);
             border-color: var(--accent);
+        }
+
+        .status-badge {
+            font-size: 0.75rem;
+            font-weight: 600;
+            padding: 0.25rem 0.6rem;
+            border-radius: 20px;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
         }
 
         .pagination {
@@ -435,7 +500,7 @@ html_template = """<!DOCTYPE html>
             cursor: not-allowed;
         }
 
-        /* Note Reader Modal */
+        /* Modal Base */
         .modal-overlay {
             position: fixed;
             top: 0;
@@ -718,10 +783,76 @@ html_template = """<!DOCTYPE html>
         </div>
     </div>
 
+    <!-- Book Details Modal -->
+    <div class="modal-overlay" id="book-modal-overlay">
+        <div class="modal-content" style="max-width: 850px;">
+            <div class="modal-header">
+                <div class="modal-header-info">
+                    <div style="display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap;">
+                        <h3 class="modal-book-title" id="bm-title" style="font-size: 1.5rem;">Book Title</h3>
+                        <span id="bm-status-badge" class="status-badge">Completed</span>
+                    </div>
+                    <div class="modal-metadata" style="margin-top: 0.5rem;">
+                        <span id="bm-author">👤 Author</span>
+                        <span id="bm-year">📅 Year</span>
+                        <span id="bm-genre">🏷️ Genre</span>
+                    </div>
+                </div>
+                <button class="close-btn" id="close-bm-btn">&times;</button>
+            </div>
+            <div class="modal-body" style="display: flex; flex-direction: column; gap: 1.5rem;">
+                
+                <!-- Reading Progress Card -->
+                <div class="card" style="background: var(--bg-tertiary); padding: 1.25rem; border-radius: 16px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                        <span style="font-weight: 600; font-size: 0.9rem; color: var(--text-main);">Reading Progress</span>
+                        <span id="bm-progress-text" style="font-weight: 700; font-size: 0.9rem; color: var(--accent);">0 / 0 pages (0%)</span>
+                    </div>
+                    <div style="width: 100%; height: 10px; background: rgba(255,255,255,0.08); border-radius: 5px; overflow: hidden;">
+                        <div id="bm-progress-bar" style="height: 100%; width: 0%; background: var(--accent-gradient); transition: width 0.4s ease;"></div>
+                    </div>
+                </div>
+
+                <!-- Details Grid -->
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 1.5rem;">
+                    
+                    <!-- Table of Contents -->
+                    <div class="card" style="background: var(--bg-tertiary); padding: 1.25rem; border-radius: 16px;">
+                        <h4 style="font-family: 'Outfit', sans-serif; font-size: 1.1rem; color: #ffffff; margin-bottom: 0.75rem;">
+                            📑 Table of Contents
+                        </h4>
+                        <div id="bm-toc" class="markdown-body" style="font-size: 0.875rem; max-height: 250px; overflow-y: auto; color: var(--text-muted);">
+                            No Table of Contents available.
+                        </div>
+                    </div>
+
+                    <!-- Associated Reading Logs -->
+                    <div class="card" style="background: var(--bg-tertiary); padding: 1.25rem; border-radius: 16px;">
+                        <h4 style="font-family: 'Outfit', sans-serif; font-size: 1.1rem; color: #ffffff; margin-bottom: 0.75rem;">
+                            📝 Reading Logs & Notes
+                        </h4>
+                        <div id="bm-logs-list" style="display: flex; flex-direction: column; gap: 0.75rem; max-height: 250px; overflow-y: auto;">
+                            <!-- Injected dynamically -->
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- Footer Action Buttons -->
+                <div style="display: flex; justify-content: space-between; align-items: center; padding-top: 1rem; border-top: 1px solid var(--border); flex-wrap: wrap; gap: 1rem;">
+                    <a id="bm-url" href="#" target="_blank" style="color: var(--accent); font-size: 0.875rem; text-decoration: none; display: none;">🔗 External Link / Store</a>
+                    <button class="clear-filter-btn" id="bm-filter-btn" style="padding: 0.5rem 1rem; font-size: 0.875rem;">🎯 Filter Dashboard by this Book</button>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
     <div class="tooltip" id="tooltip"></div>
 
     <script>
         const rawLogs = __LOGS_DATA__;
+        const materialsDb = __MATERIALS_DATA__;
 
         // Current filter state
         let currentBookFilter = null;
@@ -746,6 +877,7 @@ html_template = """<!DOCTYPE html>
         const filterBookName = document.getElementById("filter-book-name");
         const clearFilterBtn = document.getElementById("clear-filter-btn");
 
+        // Note Reader Modal
         const modalOverlay = document.getElementById("modal-overlay");
         const modalBookTitle = document.getElementById("modal-book-title");
         const modalDate = document.getElementById("modal-date");
@@ -753,6 +885,21 @@ html_template = """<!DOCTYPE html>
         const modalPages = document.getElementById("modal-pages");
         const modalBody = document.getElementById("modal-body");
         const closeModalBtn = document.getElementById("close-modal-btn");
+
+        // Book Details Modal
+        const bookModalOverlay = document.getElementById("book-modal-overlay");
+        const bmTitle = document.getElementById("bm-title");
+        const bmStatusBadge = document.getElementById("bm-status-badge");
+        const bmAuthor = document.getElementById("bm-author");
+        const bmYear = document.getElementById("bm-year");
+        const bmGenre = document.getElementById("bm-genre");
+        const bmProgressText = document.getElementById("bm-progress-text");
+        const bmProgressBar = document.getElementById("bm-progress-bar");
+        const bmToc = document.getElementById("bm-toc");
+        const bmLogsList = document.getElementById("bm-logs-list");
+        const bmUrl = document.getElementById("bm-url");
+        const bmFilterBtn = document.getElementById("bm-filter-btn");
+        const closeBmBtn = document.getElementById("close-bm-btn");
 
         // Helper functions for date operations
         function formatLocalISO(date) {
@@ -776,7 +923,6 @@ html_template = """<!DOCTYPE html>
             return formatLocalISO(d);
         }
 
-        // Get nice tick marks for Y axis
         function getNiceMaxAndInterval(rawMax) {
             const minMax = Math.max(10, rawMax);
             const magnitude = Math.pow(10, Math.floor(Math.log10(minMax)));
@@ -1024,7 +1170,7 @@ html_template = """<!DOCTYPE html>
                 
                 tr.innerHTML = `
                     <td>${row.date}</td>
-                    <td><a class="book-link" onclick="setBookFilter('${row.material.replace(/'/g, "\\'")}')">${row.material}</a></td>
+                    <td><a class="book-link" onclick="openBookModal('${row.material.replace(/'/g, "\\'")}')">${row.material}</a></td>
                     <td style="color: var(--text-muted);">${row.chapter || '-'}</td>
                     <td>${row.page_range || '-'}</td>
                     <td style="font-weight: 600; color: var(--accent);">${row.pages_read}</td>
@@ -1038,6 +1184,114 @@ html_template = """<!DOCTYPE html>
             
             prevBtn.disabled = currentPage === 1;
             nextBtn.disabled = currentPage === totalPages;
+        }
+
+        // Open Book Details Modal
+        window.openBookModal = function(bookTitle) {
+            const mat = materialsDb[bookTitle] || {
+                title: bookTitle,
+                author: "Unknown Author",
+                total_pages: 0,
+                publication_year: "",
+                genre: "General",
+                status: "reading",
+                url: "",
+                toc: ""
+            };
+
+            bmTitle.textContent = mat.title;
+            bmAuthor.textContent = `👤 ${mat.author}`;
+            bmYear.textContent = mat.publication_year ? `📅 Published ${mat.publication_year}` : "📅 Unknown Year";
+            bmGenre.textContent = mat.genre ? `🏷️ ${mat.genre}` : "🏷️ General";
+            
+            // Status badge
+            const status = (mat.status || "reading").toLowerCase();
+            if (status === "completed") {
+                bmStatusBadge.textContent = "✅ Completed";
+                bmStatusBadge.style.background = "rgba(16, 185, 129, 0.2)";
+                bmStatusBadge.style.color = "#10b981";
+                bmStatusBadge.style.border = "1px solid rgba(16, 185, 129, 0.4)";
+            } else if (status === "reading") {
+                bmStatusBadge.textContent = "📖 Reading";
+                bmStatusBadge.style.background = "rgba(99, 102, 241, 0.2)";
+                bmStatusBadge.style.color = "#818cf8";
+                bmStatusBadge.style.border = "1px solid rgba(99, 102, 241, 0.4)";
+            } else {
+                bmStatusBadge.textContent = "⏳ To Read";
+                bmStatusBadge.style.background = "rgba(245, 158, 11, 0.2)";
+                bmStatusBadge.style.color = "#f59e0b";
+                bmStatusBadge.style.border = "1px solid rgba(245, 158, 11, 0.4)";
+            }
+
+            // Find logs for this book
+            const bookLogs = rawLogs.filter(l => l.material === bookTitle || l.material === mat.title);
+            const totalPagesRead = bookLogs.reduce((acc, l) => acc + l.pages_read, 0);
+            
+            const totalPages = mat.total_pages || 0;
+            let percent = 0;
+            if (totalPages > 0) {
+                percent = Math.min(100, Math.round((totalPagesRead / totalPages) * 100));
+                bmProgressText.textContent = `${totalPagesRead.toLocaleString()} / ${totalPages.toLocaleString()} pages (${percent}%)`;
+            } else {
+                bmProgressText.textContent = `${totalPagesRead.toLocaleString()} pages read (total pages unlisted)`;
+                percent = 100;
+            }
+            bmProgressBar.style.width = `${percent}%`;
+
+            // Table of Contents
+            if (mat.toc && mat.toc.trim()) {
+                bmToc.innerHTML = marked.parse(mat.toc);
+            } else {
+                bmToc.innerHTML = '<span style="color: var(--text-muted); font-style: italic;">No Table of Contents available.</span>';
+            }
+
+            // External URL
+            if (mat.url && mat.url.trim()) {
+                bmUrl.href = mat.url;
+                bmUrl.style.display = "inline-flex";
+            } else {
+                bmUrl.style.display = "none";
+            }
+
+            // Associated logs list
+            bmLogsList.innerHTML = "";
+            if (bookLogs.length === 0) {
+                bmLogsList.innerHTML = '<span style="color: var(--text-muted); font-style: italic;">No reading logs recorded yet for this book.</span>';
+            } else {
+                bookLogs.forEach((log) => {
+                    const rawIndex = rawLogs.indexOf(log);
+                    const logItem = document.createElement("div");
+                    logItem.style.cssText = "background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: 10px; padding: 0.75rem; display: flex; justify-content: space-between; align-items: center;";
+                    
+                    const hasNote = log.note_body && log.note_body.trim().length > 0;
+                    const viewBtn = hasNote 
+                        ? `<button class="note-btn" onclick="openNoteReader(${rawIndex})">📖 Read Note</button>`
+                        : `<span style="font-size: 0.75rem; color: var(--text-muted);">-</span>`;
+
+                    logItem.innerHTML = `
+                        <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+                            <span style="font-weight: 600; font-size: 0.85rem; color: #ffffff;">${log.date} — ${log.chapter || 'Log'}</span>
+                            <span style="font-size: 0.75rem; color: var(--text-muted);">${log.pages_read} pages read (${log.page_range || '-'})</span>
+                        </div>
+                        ${viewBtn}
+                    `;
+                    bmLogsList.appendChild(logItem);
+                });
+            }
+
+            // Filter button action
+            bmFilterBtn.onclick = function() {
+                closeBookModal();
+                setBookFilter(mat.title);
+            };
+
+            bookModalOverlay.style.display = "flex";
+            document.body.style.overflow = "hidden";
+        };
+
+        function closeBookModal() {
+            bookModalOverlay.style.display = "none";
+            document.body.style.overflow = "";
         }
 
         // Set book filter
@@ -1076,13 +1330,13 @@ html_template = """<!DOCTYPE html>
                 modalBody.innerHTML = marked.parse(matchedLog.note_body);
                 
                 modalOverlay.style.display = "flex";
-                document.body.style.overflow = "hidden"; // Disable background scrolling
+                document.body.style.overflow = "hidden";
             }
         }
 
         function closeModal() {
             modalOverlay.style.display = "none";
-            document.body.style.overflow = ""; // Re-enable scrolling
+            document.body.style.overflow = "";
         }
 
         // Event Listeners for controls
@@ -1108,18 +1362,21 @@ html_template = """<!DOCTYPE html>
         searchBox.addEventListener("input", filterAndRenderTable);
         clearFilterBtn.addEventListener("click", clearBookFilter);
         closeModalBtn.addEventListener("click", closeModal);
+        closeBmBtn.addEventListener("click", closeBookModal);
         
-        // Close modal on overlay tap
+        // Close modals on overlay tap
         modalOverlay.addEventListener("click", (e) => {
-            if (e.target === modalOverlay) {
-                closeModal();
-            }
+            if (e.target === modalOverlay) closeModal();
+        });
+        bookModalOverlay.addEventListener("click", (e) => {
+            if (e.target === bookModalOverlay) closeBookModal();
         });
 
         // Close modal on ESC key
         document.addEventListener("keydown", (e) => {
             if (e.key === "Escape") {
                 closeModal();
+                closeBookModal();
             }
         });
 
@@ -1200,7 +1457,7 @@ html_template = """<!DOCTYPE html>
 </html>
 """
 
-html_content = html_template.replace("__LOGS_DATA__", json.dumps(logs_data))
+html_content = html_template.replace("__LOGS_DATA__", json.dumps(logs_data)).replace("__MATERIALS_DATA__", json.dumps(materials_data))
 
 # Create dist directory
 dist_dir = os.path.join(vault_path, "dist")
@@ -1212,4 +1469,4 @@ with open(os.path.join(dist_dir, "index.html"), "w", encoding="utf-8") as f:
 with open(os.path.join(dist_dir, ".nojekyll"), "w", encoding="utf-8") as f:
     f.write("\n")
 
-print(f"Generated static index.html and .nojekyll with {len(logs_data)} reading logs inside dist/!")
+print(f"Generated static index.html and .nojekyll with {len(logs_data)} reading logs and {len(materials_data)} book materials inside dist/!")
