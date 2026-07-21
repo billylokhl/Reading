@@ -519,7 +519,7 @@ html_template = """<!DOCTYPE html>
         }
 
         #modal-overlay {
-            z-index: 10001;
+            z-index: 10005;
         }
 
         .modal-content {
@@ -1323,7 +1323,6 @@ html_template = """<!DOCTYPE html>
 
         // Note Reader modal controls
         window.openNoteReader = function(index) {
-            closeBookModal();
             const matchedLog = rawLogs[index];
             if (matchedLog && matchedLog.note_body) {
                 modalBookTitle.textContent = matchedLog.material;
@@ -1341,7 +1340,16 @@ html_template = """<!DOCTYPE html>
 
         function closeModal() {
             modalOverlay.style.display = "none";
-            document.body.style.overflow = "";
+            if (bookModalOverlay.style.display !== "flex") {
+                document.body.style.overflow = "";
+            }
+        }
+
+        function closeBookModal() {
+            bookModalOverlay.style.display = "none";
+            if (modalOverlay.style.display !== "flex") {
+                document.body.style.overflow = "";
+            }
         }
 
         // Event Listeners for controls
@@ -1377,11 +1385,14 @@ html_template = """<!DOCTYPE html>
             if (e.target === bookModalOverlay) closeBookModal();
         });
 
-        // Close modal on ESC key
+        // Close modal on ESC key (close top-most modal first)
         document.addEventListener("keydown", (e) => {
             if (e.key === "Escape") {
-                closeModal();
-                closeBookModal();
+                if (modalOverlay.style.display === "flex") {
+                    closeModal();
+                } else if (bookModalOverlay.style.display === "flex") {
+                    closeBookModal();
+                }
             }
         });
 
