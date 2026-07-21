@@ -518,6 +518,10 @@ html_template = """<!DOCTYPE html>
             animation: fadeIn 0.2s ease-out;
         }
 
+        #modal-overlay {
+            z-index: 10001;
+        }
+
         .modal-content {
             background: #111827;
             border: 1px solid var(--border);
@@ -1319,6 +1323,7 @@ html_template = """<!DOCTYPE html>
 
         // Note Reader modal controls
         window.openNoteReader = function(index) {
+            closeBookModal();
             const matchedLog = rawLogs[index];
             if (matchedLog && matchedLog.note_body) {
                 modalBookTitle.textContent = matchedLog.material;
