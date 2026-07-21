@@ -510,7 +510,6 @@ html_template = """<!DOCTYPE html>
             background: rgba(7, 10, 19, 0.85);
             backdrop-filter: blur(12px);
             -webkit-backdrop-filter: blur(12px);
-            z-index: 10000;
             display: none;
             align-items: center;
             justify-content: center;
@@ -518,8 +517,12 @@ html_template = """<!DOCTYPE html>
             animation: fadeIn 0.2s ease-out;
         }
 
+        #book-modal-overlay {
+            z-index: 10000 !important;
+        }
+
         #modal-overlay {
-            z-index: 10005;
+            z-index: 20000 !important;
         }
 
         .modal-content {
@@ -767,26 +770,6 @@ html_template = """<!DOCTYPE html>
         </div>
     </div>
 
-    <!-- Note Reader Modal -->
-    <div class="modal-overlay" id="modal-overlay">
-        <div class="modal-content">
-            <div class="modal-header">
-                <div class="modal-header-info">
-                    <h3 class="modal-book-title" id="modal-book-title">Book Title</h3>
-                    <div class="modal-metadata">
-                        <span id="modal-date">Date</span>
-                        <span id="modal-chapter">Chapter</span>
-                        <span id="modal-pages">Pages Read</span>
-                    </div>
-                </div>
-                <button class="close-btn" id="close-modal-btn">&times;</button>
-            </div>
-            <div class="modal-body markdown-body" id="modal-body">
-                <!-- Rendered Markdown Content -->
-            </div>
-        </div>
-    </div>
-
     <!-- Book Details Modal -->
     <div class="modal-overlay" id="book-modal-overlay">
         <div class="modal-content" style="max-width: 850px;">
@@ -848,6 +831,26 @@ html_template = """<!DOCTYPE html>
                     <button class="clear-filter-btn" id="bm-filter-btn" style="padding: 0.5rem 1rem; font-size: 0.875rem;">🎯 Filter Dashboard by this Book</button>
                 </div>
 
+            </div>
+        </div>
+    </div>
+
+    <!-- Note Reader Modal -->
+    <div class="modal-overlay" id="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-header-info">
+                    <h3 class="modal-book-title" id="modal-book-title">Book Title</h3>
+                    <div class="modal-metadata">
+                        <span id="modal-date">Date</span>
+                        <span id="modal-chapter">Chapter</span>
+                        <span id="modal-pages">Pages Read</span>
+                    </div>
+                </div>
+                <button class="close-btn" id="close-modal-btn">&times;</button>
+            </div>
+            <div class="modal-body markdown-body" id="modal-body">
+                <!-- Rendered Markdown Content -->
             </div>
         </div>
     </div>
