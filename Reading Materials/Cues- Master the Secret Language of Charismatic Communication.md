@@ -3,6 +3,9 @@ type: material
 material_type: Book
 title: "Cues: Master the Secret Language of Charismatic Communication"
 author: "Vanessa Van Edwards"
+total_pages: 320
+publication_year: 2022
+genre: "Communication & Self-Help"
 status: reading
 URL: "https://www.amazon.com/s?k=Cues%3A%20Master%20the%20Secret%20Language%20of%20Charismatic%20Communication%20book"
 ---

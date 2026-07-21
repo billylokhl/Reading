@@ -3,6 +3,9 @@ type: material
 material_type: Book
 title: "The Manager's Path"
 author: "Camille Fournier"
+total_pages: 244
+publication_year: 2017
+genre: "Business & Engineering Leadership"
 status: reading
 URL: "https://www.amazon.com/s?k=The%20Manager%27s%20Path%20book"
 ---

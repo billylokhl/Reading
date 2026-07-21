@@ -2,7 +2,10 @@
 type: material
 material_type: Book
 title: "The Book of Why"
-author: "Judea Pearl"
+author: "Judea Pearl & Dana Mackenzie"
+total_pages: 448
+publication_year: 2018
+genre: "Science & Artificial Intelligence"
 status: reading
 URL: "https://gemini.google.com/app/b30985873c3d22d7"
 ---

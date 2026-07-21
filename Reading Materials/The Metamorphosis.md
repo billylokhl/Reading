@@ -2,7 +2,10 @@
 type: material
 material_type: Book
 title: "The Metamorphosis"
-author: "Kuper, Peter"
+author: "Franz Kafka"
+total_pages: 100
+publication_year: 1915
+genre: "Classic Fiction"
 status: completed
 URL: "https://www.amazon.com/s?k=The%20Metamorphosis%20book"
 ---

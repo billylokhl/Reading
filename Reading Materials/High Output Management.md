@@ -3,6 +3,9 @@ type: material
 material_type: Book
 title: "High Output Management"
 author: "Andrew S. Grove"
+total_pages: 272
+publication_year: 1983
+genre: "Business & Management"
 status: reading
 URL: "https://gemini.google.com/app/6dd06814f638fd10"
 ---

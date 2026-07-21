@@ -3,6 +3,9 @@ type: material
 material_type: Book
 title: "Chip War"
 author: "Chris Miller"
+total_pages: 464
+publication_year: 2022
+genre: "History & Technology"
 status: completed
 URL: "https://gemini.google.com/app/1968dabba6857185"
 ---

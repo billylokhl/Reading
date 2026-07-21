@@ -2,7 +2,10 @@
 type: material
 material_type: Book
 title: "How to Be the Love You Seek"
-author: "Nicole LePera PhD"
+author: "Nicole LePera"
+total_pages: 384
+publication_year: 2023
+genre: "Psychology & Relationships"
 status: reading
 URL: "https://www.amazon.com/s?k=How%20to%20Be%20the%20Love%20You%20Seek%20book"
 ---

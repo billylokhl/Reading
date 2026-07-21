@@ -3,6 +3,9 @@ type: material
 material_type: Book
 title: "Mrs. Dalloway"
 author: "Virginia Woolf"
+total_pages: 216
+publication_year: 1925
+genre: "Classic Fiction"
 status: reading
 URL: "https://www.amazon.com/Mrs-Dalloway-Virginia-Woolf/dp/0156628708"
 ---

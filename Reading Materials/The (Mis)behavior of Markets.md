@@ -2,7 +2,10 @@
 type: material
 material_type: Book
 title: "The (Mis)behavior of Markets"
-author: "Benoît B. Mandelbrot"
+author: "Benoit Mandelbrot & Richard L. Hudson"
+total_pages: 352
+publication_year: 2004
+genre: "Finance & Economics"
 status: reading
 URL: "https://gemini.google.com/app/83a54b665ee6e1d4"
 ---

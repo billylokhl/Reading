@@ -2,7 +2,10 @@
 type: material
 material_type: Book
 title: "How to Avoid H.E.N.R.Y Syndrome"
-author: "Gideon Drucker"
+author: "Gideon Draper"
+total_pages: 160
+publication_year: 2021
+genre: "Personal Finance & Wealth"
 status: completed
 URL: "https://gemini.google.com/app/68382188d9296441"
 ---

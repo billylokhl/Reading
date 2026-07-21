@@ -2,7 +2,10 @@
 type: material
 material_type: Book
 title: "The Body Keeps the Score"
-author: "Bessel van der Kolk"
+author: "Bessel van der Kolk M.D."
+total_pages: 464
+publication_year: 2014
+genre: "Psychology & Neuroscience"
 status: reading
 URL: "https://www.barnesandnoble.com/w/the-body-keeps-the-score-bessel-van-der-kolk-md/1117229987?ean=9780143127741"
 ---

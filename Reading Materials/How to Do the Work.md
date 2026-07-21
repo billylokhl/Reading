@@ -2,7 +2,10 @@
 type: material
 material_type: Book
 title: "How to Do the Work"
-author: "Nicole LePera PhD"
+author: "Nicole LePera"
+total_pages: 320
+publication_year: 2021
+genre: "Psychology & Self-Help"
 status: reading
 URL: "https://www.amazon.com/s?k=How%20to%20Do%20the%20Work%20book"
 ---

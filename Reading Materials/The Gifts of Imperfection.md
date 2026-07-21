@@ -2,7 +2,10 @@
 type: material
 material_type: Book
 title: The Gifts of Imperfection
-author: Brené Brown
+author: "Brené Brown"
+total_pages: 160
+publication_year: 2010
+genre: "Psychology & Self-Help"
 status: reading
 URL: "https://www.amazon.com/s?k=The%20Gifts%20of%20Imperfection%20book"
 ---

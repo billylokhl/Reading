@@ -2,7 +2,10 @@
 type: material
 material_type: Book
 title: "Breath: The New Science of a Lost Art"
-author: "Peter Cuomo"
+author: "James Nestor"
+total_pages: 304
+publication_year: 2020
+genre: "Health & Science"
 status: completed
 URL: "https://gemini.google.com/app/0eac557db8d0fe82"
 ---

@@ -3,6 +3,9 @@ type: material
 material_type: Book
 title: "Getting Past Your Past"
 author: "Francine Shapiro Ph.D."
+total_pages: 352
+publication_year: 2012
+genre: "Psychology & Self-Help"
 status: reading
 URL: "https://gemini.google.com/app/5a5fe18eb85f5d43"
 ---

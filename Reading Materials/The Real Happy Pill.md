@@ -3,6 +3,9 @@ type: material
 material_type: Book
 title: "The Real Happy Pill"
 author: "Anders Hansen"
+total_pages: 256
+publication_year: 2017
+genre: "Health & Neuroscience"
 status: reading
 URL: "https://a.co/d/0G8f5W1"
 ---

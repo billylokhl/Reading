@@ -3,6 +3,9 @@ type: material
 material_type: Book
 title: "The Happiness Trap"
 author: "Russ Harris"
+total_pages: 288
+publication_year: 2007
+genre: "Psychology & Self-Help"
 status: reading
 URL: "https://g.co/gemini/share/ebc1da258403"
 ---

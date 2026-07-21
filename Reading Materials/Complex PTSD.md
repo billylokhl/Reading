@@ -3,6 +3,9 @@ type: material
 material_type: Book
 title: "Complex PTSD"
 author: "Pete Walker"
+total_pages: 374
+publication_year: 2013
+genre: "Psychology & Self-Help"
 status: reading
 URL: "https://a.co/d/6z9aG7z"
 ---

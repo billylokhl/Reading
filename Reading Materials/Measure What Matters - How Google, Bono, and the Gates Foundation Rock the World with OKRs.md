@@ -3,6 +3,9 @@ type: material
 material_type: Book
 title: "Measure What Matters"
 author: "John Doerr"
+total_pages: 320
+publication_year: 2018
+genre: "Business & Leadership"
 status: reading
 URL: "https://www.amazon.com/s?k=Measure%20What%20Matters%20book"
 ---

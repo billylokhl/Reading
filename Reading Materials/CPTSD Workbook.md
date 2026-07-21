@@ -3,6 +3,9 @@ type: material
 material_type: Book
 title: "CPTSD Workbook"
 author: "Arielle Schwartz"
+total_pages: 186
+publication_year: 2016
+genre: "Psychology & Self-Help"
 status: reading
 URL: "https://a.co/d/ahwLWmU"
 ---

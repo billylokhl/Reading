@@ -2,7 +2,10 @@
 type: material
 material_type: Book
 title: "It's Not You"
-author: "Ramani Durvasula"
+author: "Ramani Durvasula Ph.D."
+total_pages: 432
+publication_year: 2024
+genre: "Psychology & Self-Help"
 status: reading
 URL: "https://a.co/d/bzXf7XD"
 ---

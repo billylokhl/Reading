@@ -3,6 +3,9 @@ type: material
 material_type: Book
 title: "DBT Workbook for Narcissistic Abuse & Gaslighting"
 author: "Katelyn Baxter-Musser"
+total_pages: 174
+publication_year: 2023
+genre: "Psychology & Self-Help"
 status: reading
 URL: "https://www.amazon.com/s?k=DBT%20Workbook%20for%20Narcissistic%20Abuse%20%26%20Gaslighting%20book"
 ---

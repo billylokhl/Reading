@@ -3,6 +3,9 @@ type: material
 material_type: Book
 title: "Think Again"
 author: "Adam Grant"
+total_pages: 320
+publication_year: 2021
+genre: "Psychology & Self-Help"
 status: completed
 URL: "https://gemini.google.com/app/9a462a70c578478a"
 ---

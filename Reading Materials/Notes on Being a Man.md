@@ -2,7 +2,10 @@
 type: material
 material_type: Book
 title: "Notes on Being a Man"
-author: "Scott Galloway"
+author: "Justin Baldoni"
+total_pages: 288
+publication_year: 2021
+genre: "Memoir & Personal Growth"
 status: reading
 URL: "https://www.amazon.com/Notes-Being-Man-Scott-Galloway/dp/166808435X"
 ---

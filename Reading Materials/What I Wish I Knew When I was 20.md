@@ -2,7 +2,10 @@
 type: material
 material_type: Book
 title: "What I Wish I Knew When I was 20"
-author: "Tina Lynn Seelig"
+author: "Tina Seelig"
+total_pages: 224
+publication_year: 2009
+genre: "Business & Personal Growth"
 status: reading
 URL: "https://gemini.google.com/app/1dadbd1916f4e3c0"
 ---

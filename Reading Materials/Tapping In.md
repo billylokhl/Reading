@@ -2,7 +2,10 @@
 type: material
 material_type: Book
 title: "Tapping In"
-author: "Laurel Parnell"
+author: "Laurel Parnell Ph.D."
+total_pages: 248
+publication_year: 2008
+genre: "Psychology & Healing"
 status: reading
 URL: "https://share.libbyapp.com/title/464592"
 ---

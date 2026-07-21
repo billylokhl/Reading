@@ -2,7 +2,10 @@
 type: material
 material_type: Book
 title: "Validation"
-author: "Sheri Van Dijk"
+author: "Karyn D. Hall Ph.D. & Melissa Cook"
+total_pages: 208
+publication_year: 2011
+genre: "Parenting & Psychology"
 status: reading
 URL: "https://www.amazon.com/dp/0593541219/?coliid=I1LU3XY3PTZE68&colid=3QOAYOFRY7C01&psc=1&ref_=list_c_wl_lv_ov_lig_dp_it"
 ---

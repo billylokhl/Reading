@@ -2,7 +2,10 @@
 type: material
 material_type: Book
 title: "Getting the Love You Want"
-author: "Harville Hendrix"
+author: "Harville Hendrix & Helen LaKelly Hunt"
+total_pages: 384
+publication_year: 1988
+genre: "Relationships & Self-Help"
 status: reading
 URL: "https://www.amazon.com/s?k=Getting%20the%20Love%20You%20Want%20book"
 ---

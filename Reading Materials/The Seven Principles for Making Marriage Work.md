@@ -2,7 +2,10 @@
 type: material
 material_type: Book
 title: "The Seven Principles for Making Marriage Work"
-author: "John Mordechai Gottman"
+author: "John Gottman Ph.D. & Nan Silver"
+total_pages: 320
+publication_year: 1999
+genre: "Relationships & Psychology"
 status: reading
 URL: "https://www.amazon.com/s?k=The%20Seven%20Principles%20for%20Making%20Marriage%20Work%20book"
 ---

@@ -3,6 +3,9 @@ type: material
 material_type: Book
 title: "Hold Me Tight"
 author: "Sue Johnson"
+total_pages: 320
+publication_year: 2008
+genre: "Relationships & Psychology"
 status: reading
 URL: "https://share.libbyapp.com/title/155433"
 ---

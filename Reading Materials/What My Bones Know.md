@@ -3,6 +3,9 @@ type: material
 material_type: Book
 title: "What My Bones Know"
 author: "Stephanie Foo"
+total_pages: 352
+publication_year: 2022
+genre: "Memoir & Psychology"
 status: reading
 URL: "https://www.amazon.com/What-My-Bones-Know-Healing/dp/0593238109?dplnkId=1d147593-31c8-4693-a6d4-074e2c5c6627&nodl=1"
 ---

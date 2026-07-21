@@ -3,6 +3,9 @@ type: material
 material_type: Book
 title: "Tomorrow, Tomorrow, and Tomorrow"
 author: "Gabrielle Zevin"
+total_pages: 416
+publication_year: 2022
+genre: "Fiction"
 status: completed
 URL: "https://gemini.google.com/app/b8ab44a897b0c3c2"
 ---
