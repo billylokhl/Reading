@@ -4,10 +4,16 @@ const noteType = await tp.system.suggester(["New Reading Material (Book/Article)
 if (noteType === "material") {
     const title = await tp.system.prompt("Title of the material:");
     if (!title) return;
-    const author = await tp.system.prompt("Author:");
-    const materialType = await tp.system.suggester(["Book", "Article", "Paper"], ["Book", "Article", "Paper"]);
+    const author = await tp.system.prompt("Author:") || "";
+    const materialType = await tp.system.suggester(["Book", "Article", "Paper"], ["Book", "Article", "Paper"]) || "Book";
     
-    const targetPath = "Reading Materials/" + title + ".md";
+    const targetFolder = "Reading Materials";
+    let folderObj = app.vault.getAbstractFileByPath(targetFolder);
+    if (!folderObj) {
+        folderObj = await app.vault.createFolder(targetFolder);
+    }
+
+    const targetPath = targetFolder + "/" + title + ".md";
     if (app.vault.getAbstractFileByPath(targetPath)) {
         new Notice("Error: A note for '" + title + "' already exists in Reading Materials!");
         return;
@@ -20,7 +26,7 @@ if (noteType === "material") {
 "author: \"" + author + "\"\n" +
 "status: reading\n" +
 "---\n" +
-"# " + title + " by " + author + "\n\n" +
+"# " + title + (author ? " by " + author : "") + "\n\n" +
 "## My Reading Logs\n" +
 "```dataview\n" +
 "TABLE date AS \"Date\", chapter AS \"Chapter\", page_range AS \"Pages\", pages_read AS \"Count\"\n" +
@@ -29,7 +35,7 @@ if (noteType === "material") {
 "SORT date DESC\n" +
 "```\n";
 
-    await tp.file.create_new(content, title, true, "Reading Materials");
+    await tp.file.create_new(content, title, true, folderObj);
 } else if (noteType === "log") {
     const today = tp.date.now("YYYY-MM-DD");
     
@@ -45,7 +51,7 @@ if (noteType === "material") {
     }
     
     if (!material) return;
-    const chapter = await tp.system.prompt("Chapter/Section:");
+    const chapter = await tp.system.prompt("Chapter/Section:") || "";
     
     const startPageStr = await tp.system.prompt("Start Page (or leave blank):");
     const endPageStr = await tp.system.prompt("End Page (or leave blank):");
@@ -62,13 +68,18 @@ if (noteType === "material") {
     } else {
         const totalPagesStr = await tp.system.prompt("Total Pages Read (number):");
         pagesRead = parseInt(totalPagesStr) || 0;
-        pageRange = pagesRead.toString();
+        pageRange = pagesRead ? pagesRead.toString() : "";
     }
     
     const filename = today + " - " + (chapter ? chapter : "Reading Log");
     const targetFolder = "Reading Logs/" + material;
-    const targetPath = targetFolder + "/" + filename + ".md";
     
+    let folderObj = app.vault.getAbstractFileByPath(targetFolder);
+    if (!folderObj) {
+        folderObj = await app.vault.createFolder(targetFolder);
+    }
+
+    const targetPath = targetFolder + "/" + filename + ".md";
     if (app.vault.getAbstractFileByPath(targetPath)) {
         new Notice("Error: This reading log already exists!");
         return;
@@ -86,6 +97,6 @@ if (noteType === "material") {
 "## Notes\n" +
 "- \n";
 
-    await tp.file.create_new(content, filename, true, targetFolder);
+    await tp.file.create_new(content, filename, true, folderObj);
 }
 -%>
