@@ -8,16 +8,17 @@ if (noteType === "material") {
     const materialType = await tp.system.suggester(["Book", "Article", "Paper"], ["Book", "Article", "Paper"]) || "Book";
     
     const targetFolder = "Reading Materials";
-    let folderObj = app.vault.getAbstractFileByPath(targetFolder);
-    if (!folderObj) {
-        folderObj = await app.vault.createFolder(targetFolder);
+    if (!app.vault.getAbstractFileByPath(targetFolder)) {
+        await app.vault.createFolder(targetFolder);
     }
 
-    const targetPath = targetFolder + "/" + title + ".md";
-    if (app.vault.getAbstractFileByPath(targetPath)) {
+    const targetPath = targetFolder + "/" + title;
+    if (app.vault.getAbstractFileByPath(targetPath + ".md")) {
         new Notice("Error: A note for '" + title + "' already exists in Reading Materials!");
         return;
     }
+    
+    await tp.file.move(targetPath);
     
     let content = "---\n" +
 "type: material\n" +
@@ -35,7 +36,7 @@ if (noteType === "material") {
 "SORT date DESC\n" +
 "```\n";
 
-    await tp.file.create_new(content, title, true, folderObj);
+    tR += content;
 } else if (noteType === "log") {
     const today = tp.date.now("YYYY-MM-DD");
     
@@ -74,16 +75,17 @@ if (noteType === "material") {
     const filename = today + " - " + (chapter ? chapter : "Reading Log");
     const targetFolder = "Reading Logs/" + material;
     
-    let folderObj = app.vault.getAbstractFileByPath(targetFolder);
-    if (!folderObj) {
-        folderObj = await app.vault.createFolder(targetFolder);
+    if (!app.vault.getAbstractFileByPath(targetFolder)) {
+        await app.vault.createFolder(targetFolder);
     }
 
-    const targetPath = targetFolder + "/" + filename + ".md";
-    if (app.vault.getAbstractFileByPath(targetPath)) {
+    const targetPath = targetFolder + "/" + filename;
+    if (app.vault.getAbstractFileByPath(targetPath + ".md")) {
         new Notice("Error: This reading log already exists!");
         return;
     }
+    
+    await tp.file.move(targetPath);
     
     let content = "---\n" +
 "type: reading-log\n" +
@@ -97,6 +99,6 @@ if (noteType === "material") {
 "## Notes\n" +
 "- \n";
 
-    await tp.file.create_new(content, filename, true, folderObj);
+    tR += content;
 }
 -%>
