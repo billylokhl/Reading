@@ -1,4 +1,13 @@
 <%*
+function sanitizeFilename(name) {
+    if (!name) return "";
+    return name
+        .replace(/[:]/g, " -")
+        .replace(/[\/\\?%*:|"<>]/g, "-")
+        .replace(/\s+/g, " ")
+        .trim();
+}
+
 const noteType = await tp.system.suggester(["New Reading Material (Book/Article)", "New Reading Session (Log)"], ["material", "log"]);
 
 if (noteType === "material") {
@@ -7,12 +16,13 @@ if (noteType === "material") {
     const author = await tp.system.prompt("Author:") || "";
     const materialType = await tp.system.suggester(["Book", "Article", "Paper"], ["Book", "Article", "Paper"]) || "Book";
     
+    const safeTitle = sanitizeFilename(title);
     const targetFolder = "Reading Materials";
     if (!app.vault.getAbstractFileByPath(targetFolder)) {
         await app.vault.createFolder(targetFolder);
     }
 
-    const targetPath = targetFolder + "/" + title;
+    const targetPath = targetFolder + "/" + safeTitle;
     if (app.vault.getAbstractFileByPath(targetPath + ".md")) {
         new Notice("Error: A note for '" + title + "' already exists in Reading Materials!");
         return;
@@ -23,8 +33,8 @@ if (noteType === "material") {
     let content = "---\n" +
 "type: material\n" +
 "material_type: " + materialType + "\n" +
-"title: \"" + title + "\"\n" +
-"author: \"" + author + "\"\n" +
+"title: \"" + title.replace(/"/g, '\\"') + "\"\n" +
+"author: \"" + author.replace(/"/g, '\\"') + "\"\n" +
 "status: reading\n" +
 "---\n" +
 "# " + title + (author ? " by " + author : "") + "\n\n" +
@@ -72,14 +82,15 @@ if (noteType === "material") {
         pageRange = pagesRead ? pagesRead.toString() : "";
     }
     
-    const filename = today + " - " + (chapter ? chapter : "Reading Log");
+    const rawFilename = today + " - " + (chapter ? chapter : "Reading Log");
+    const safeFilename = sanitizeFilename(rawFilename);
     const targetFolder = "Reading Logs/" + material;
     
     if (!app.vault.getAbstractFileByPath(targetFolder)) {
         await app.vault.createFolder(targetFolder);
     }
 
-    const targetPath = targetFolder + "/" + filename;
+    const targetPath = targetFolder + "/" + safeFilename;
     if (app.vault.getAbstractFileByPath(targetPath + ".md")) {
         new Notice("Error: This reading log already exists!");
         return;
@@ -91,7 +102,7 @@ if (noteType === "material") {
 "type: reading-log\n" +
 "date: " + today + "\n" +
 "material: \"[[" + material + "]]\"\n" +
-"chapter: \"" + chapter + "\"\n" +
+"chapter: \"" + chapter.replace(/"/g, '\\"') + "\"\n" +
 "page_range: \"" + pageRange + "\"\n" +
 "pages_read: " + pagesRead + "\n" +
 "---\n" +
