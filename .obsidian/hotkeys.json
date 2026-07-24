@@ -1,5 +1,5 @@
 {
-  "templater-obsidian:insert-templater": [
+  "templater-obsidian:create-new-note-from-template": [
     {
       "modifiers": [
         "Alt"
