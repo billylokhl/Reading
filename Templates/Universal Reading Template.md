@@ -13,8 +13,6 @@ if (noteType === "material") {
         return;
     }
     
-    await tp.file.move("Reading Materials/" + title);
-    
     let content = "---\n" +
 "type: material\n" +
 "material_type: " + materialType + "\n" +
@@ -30,7 +28,8 @@ if (noteType === "material") {
 "WHERE material = [[" + title + "]]\n" +
 "SORT date DESC\n" +
 "```\n";
-    tR += content;
+
+    await tp.file.create_new(content, title, true, "Reading Materials");
 } else if (noteType === "log") {
     const today = tp.date.now("YYYY-MM-DD");
     
@@ -67,13 +66,13 @@ if (noteType === "material") {
     }
     
     const filename = today + " - " + (chapter ? chapter : "Reading Log");
-    const targetPath = "Reading Logs/" + material + "/" + filename + ".md";
+    const targetFolder = "Reading Logs/" + material;
+    const targetPath = targetFolder + "/" + filename + ".md";
+    
     if (app.vault.getAbstractFileByPath(targetPath)) {
         new Notice("Error: This reading log already exists!");
         return;
     }
-    
-    await tp.file.move("Reading Logs/" + material + "/" + filename);
     
     let content = "---\n" +
 "type: reading-log\n" +
@@ -86,6 +85,7 @@ if (noteType === "material") {
 "# " + (chapter ? chapter : "Reading Notes") + "\n\n" +
 "## Notes\n" +
 "- \n";
-    tR += content;
+
+    await tp.file.create_new(content, filename, true, targetFolder);
 }
 -%>
